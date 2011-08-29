@@ -160,8 +160,34 @@ static void add_cppflag(struct project *p, struct module *m, char *flag)
 	m->cppflag[m->cppflags - 1].flag = flag;
 }
 
+static int sources_filter(char *name)
+{
+	int len = strlen(name);
+	if (len > 2) {
+		if ((strcmp(".h", name + len - 2) == 0)
+		 || (strcmp(".d", name + len - 2) == 0)) {
+			return 1;
+		}
+	}
+	if (len > 4) {
+		if ((strcmp(".asn", name + len - 4) == 0)
+		 || (strcmp(".map", name + len - 4) == 0)) {
+			return 1;
+		}
+	}
+	if (len > 5) {
+		if (strcmp(".list", name + len - 5) == 0)
+			return 1;
+	}
+	return 0;
+}
+
 static void add_source(struct module *m, char *name, struct generator *g)
 {
+	if (sources_filter(name)) {
+		free(name);
+		return;
+	}
 	m->sources++;
 	m->source = realloc(m->source, m->sources * sizeof(struct source));
 	m->source[m->sources - 1].name = name;
