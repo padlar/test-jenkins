@@ -24,6 +24,9 @@ static struct opstrings opstrings[]={
 };
 #undef OPTION_ENTRY
 
+/* need to maintain state for parsing -I<space>path */
+static int include_space;
+
 void die(char *error)
 {
 	fprintf(stderr, "Error in command line: %s\n", error);
@@ -32,22 +35,33 @@ void die(char *error)
 
 static char *add_slashes(char *in)
 {
+	int incmode = 0;
 	int newlen = 0;
 	char *ptr, *out, *outptr;
 
+	if (strncasecmp(in, "-i", 2) == 0) {
+		incmode = 1;
+	}
+
 	ptr = in;
 	while (*ptr) {
-		if (*ptr == '"');
+		if (*ptr == '"' || *ptr == ' ')
 			newlen++;
+		if (!incmode && (*ptr == '(' || *ptr == ')'))
+			newlen++;
+
 		newlen++; ptr++;
 	}
 	out = malloc(sizeof(char) * newlen + 1);
 	ptr = in;
 	outptr = out;
 	while (*ptr) {
-		if (*ptr == '"') {
+		if (*ptr == '"' || *ptr == ' ')
 			*(outptr++) = '\\';
-		}
+
+		if (!incmode && (*ptr == '(' || *ptr ==')'))
+			*(outptr++) = '\\';
+
 		*(outptr++) = *(ptr++);
 	}
 	*outptr = 0;
@@ -110,25 +124,42 @@ void add_tag(struct module *m, char *name)
 
 static char *path_subst(struct project *p, char *in)
 {
+	char *ptr;
+	if (include_space) {
+		include_space = 0;
+		ptr = malloc(strlen(in) + 2);
+		ptr[0] = '-';
+		ptr[1] = 'I';
+		strcpy(ptr + 2, in);
+		free(in);
+	} else {
+		ptr = in;
+	}
+
 	if (p->abs_top && p->rel_top &&
-	    (strlen(in) > 2) && (in[0] == '-') && (in[1] == 'I')) {
-		if (strncmp(in + 2, p->rel_top, strlen(p->rel_top)) == 0) {
-			int newlen = strlen(in) - strlen(p->rel_top)
+	    (strlen(ptr) > 2) && (ptr[0] == '-') && (ptr[1] == 'I')) {
+		if (strncmp(ptr + 2, p->rel_top, strlen(p->rel_top)) == 0) {
+			int newlen = strlen(ptr) - strlen(p->rel_top)
 			           + strlen(p->abs_top) + 1;
 			char *newstr = malloc(newlen * sizeof(char));
 			newstr[0] = '-';
 			newstr[1] = 'I';
 			strcpy(newstr + 2, p->abs_top);
-			strcat(newstr, in + 2 + strlen(p->rel_top));
-			free(in);
+			strcat(newstr, ptr + 2 + strlen(p->rel_top));
+			free(ptr);
 			return newstr;
 		}
 	}
-	return in;
+	return ptr;
 }
 
 static void add_cflag(struct project *p, struct module *m, char *flag)
 {
+	if (strcmp("-I", flag) == 0) {
+		free(flag);
+		include_space = 1;
+		return;
+	}
 	if (strcmp("-Werror", flag) == 0) {
 		free(flag);
 		return;
