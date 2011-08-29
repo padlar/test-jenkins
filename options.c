@@ -239,6 +239,10 @@ static void add_ldflag(struct module *m, char *flag, enum build_type btype)
 			free(flag);
 			return;
 		}
+		if (flag[1] == 'R') {
+			free(flag);
+			return;
+		}
 		if ((strcmp(flag, "-pthread") == 0) ||
 		    (strcmp(flag, "-lpthread") == 0)) {
 			free(flag);
