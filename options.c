@@ -400,6 +400,11 @@ struct project *options_parse(int argc, char **args)
 					die("a module type must be declared before adding libfilters");
 				add_libfilter(m, arg, LIBRARY_STATIC);
 				break;
+			case MODE_LIBFILTER_WHOLE:
+				if (!m)
+					die("a module type must be declared before adding libfilters");
+				add_libfilter(m, arg, LIBRARY_WHOLE_STATIC);
+				break;
 			case MODE_END:
 				break;
 			}
