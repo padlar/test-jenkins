@@ -235,12 +235,12 @@ static void add_ldflag(struct module *m, char *flag, enum build_type btype)
 	}
 
 	if (flag[0] == '-') {
-		if (flag[1] == 'L') {//we eat that for BREAKFAST
+		if (flag[1] == 'L') {
 			free(flag);
 			return;
 		}
 		if ((strcmp(flag, "-pthread") == 0) ||
-		    (strcmp(flag, "-lpthread") == 0)) {//yum
+		    (strcmp(flag, "-lpthread") == 0)) {
 			free(flag);
 			return;
 		}
