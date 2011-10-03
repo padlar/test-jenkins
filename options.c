@@ -155,6 +155,7 @@ static char *path_subst(struct project *p, char *in)
 
 static void add_cflag(struct project *p, struct module *m, char *flag)
 {
+	int i;
 	if (strcmp("-I", flag) == 0) {
 		free(flag);
 		include_space = 1;
@@ -171,6 +172,13 @@ static void add_cflag(struct project *p, struct module *m, char *flag)
 	}
 
 	flag = path_subst(p, flag);
+
+	for (i = 0; i < m->cflags; i++) {
+		if (strcmp(flag, m->cflag[i].flag) == 0) {
+		    free(flag);
+		    return;
+		}
+	}
 
 	m->cflags++;
 	m->cflag = realloc(m->cflag, m->cflags * sizeof(struct flag));
