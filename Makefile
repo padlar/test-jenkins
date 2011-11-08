@@ -5,4 +5,4 @@ androgenizer: main.o options.o emit.o common.h emit.h options.h library.h librar
 	$(CC) $(CFLAGS) main.o options.o emit.o library.o -o androgenizer
 
 clean:
-	rm -f main.o options.o emit.o androgenizer
+	rm -f main.o options.o emit.o library.o androgenizer
