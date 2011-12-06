@@ -362,9 +362,6 @@ static enum mode get_mode(char *arg)
 		if (strcmp(opstrings[i].str, arg) == 0)
 			outval = opstrings[i].mode;
 
-	if (outval != MODE_UNDEFINED)
-		free(arg);
-
 	return outval;
 }
 
@@ -388,8 +385,15 @@ struct project *options_parse(int argc, char **args)
 	}
 	for (i = 1; i < argc; i++) {
 		enum mode nm;
-		arg = add_slashes(args[i]);
-		nm = get_mode(arg);
+		nm = get_mode(args[i]);
+		if (mode != MODE_PASSTHROUGH)
+			arg = add_slashes(args[i]);
+		else
+			arg = strdup(args[i]);
+
+		if (nm != MODE_UNDEFINED)
+			free(arg);
+
 		if (nm == MODE_UNDEFINED) {
 			switch (mode) {
 			case MODE_UNDEFINED:
