@@ -63,6 +63,9 @@ static char *add_slashes(char *in)
 		if (!incmode && (*ptr == '(' || *ptr ==')'))
 			*(outptr++) = '\\';
 
+		if (!incmode && (*ptr == '<' || *ptr =='>'))
+			*(outptr++) = '\\';
+
 		*(outptr++) = *(ptr++);
 	}
 	*outptr = 0;
