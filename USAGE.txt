@@ -29,6 +29,9 @@ Adding resources to modules (a module must be declared first!):
 -:LIBFILTER_STATIC followed by a list of libs (no lib prefix, or extension)
 	to be interpreted as LOCAL_STATIC_LIBRARIES
 
+-:LIBFILTER_WHOLE followed by a list of libs (no lib prefix, or extension)
+	to be interpreted as LOCAL_WHOLE_STATIC_LIBRARIES
+
 -:TAGS  must be followed by any number of: optional user eng tests
 
 -:HEADERS followed by any number of headers for LOCAL_COPY_HEADERS
