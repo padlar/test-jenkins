@@ -269,35 +269,39 @@ static void add_library(struct module *m, char *name, enum library_type ltype)
 	m->library[m->libraries - 1].ltype = ltype;
 }
 
-static void add_ldflag(struct module *m, char *flag, enum build_type btype)
+static int add_ldflag(struct module *m, char *flag, enum build_type btype)
 {
 	enum library_type ltype;
 	int len = strlen(flag);
 
 	if (len < 2)  {//this is probably a WTF condition...
 		free(flag);
-		return;
+		return 0;
 	}
 
 	if (flag[0] == '-') {
 		if (flag[1] == 'L') {
 			free(flag);
-			return;
+			return 0;
 		}
 		if (flag[1] == 'R') {
 			free(flag);
-			return;
+			return 0;
 		}
 		if ((strcmp(flag, "-pthread") == 0) ||
 		    (strcmp(flag, "-lpthread") == 0)) {
 			free(flag);
-			return;
+			return 0;
+		}
+		if ((strcmp(flag, "-dlopen") == 0)) {
+			free(flag);
+			return 1;
 		}
 		if (flag[1] == 'l') {// actually figure out what libtype...
 			ltype = library_scope(flag + 2);
 			add_library(m, strdup(flag+2), ltype);
 			free(flag);
-			return;
+			return 0;
 		}
 		add_library(m, flag, LIBRARY_FLAG);
 	} else {
@@ -305,7 +309,7 @@ static void add_ldflag(struct module *m, char *flag, enum build_type btype)
 
 		if (dot && (strcmp(dot, ".lo") == 0)) {
 			free(flag);
-			return;
+			return 0;
 		}
 
 		if (dot && (strcmp(dot, ".la") == 0)) {
@@ -322,14 +326,16 @@ static void add_ldflag(struct module *m, char *flag, enum build_type btype)
 				flag = strdup(lname + 3);
 				free(temp);
 				add_library(m, flag, LIBRARY_EXTERNAL);
-				return;
+				return 0;
 			}
 			free(flag);
-			return;
+			return 0;
 		}
 		free(flag);
 //		add_library(m, flag, LIBRARY_FLAG);
 	}
+
+	return 0;
 }
 
 static void add_module(struct project *p, struct module *m)
@@ -369,7 +375,7 @@ struct project *options_parse(int argc, char **args)
 {
 	enum mode mode = MODE_UNDEFINED;
 	char *arg;
-	int i;
+	int i, skip = 0;
 	enum build_type bt;
 	enum module_type mt;
 	struct project *p = NULL;
@@ -430,7 +436,12 @@ struct project *options_parse(int argc, char **args)
 			case MODE_LDFLAGS:
 				if (!m)
 					die("a module type must be declared before adding -:LDFLAGS");
-				add_ldflag(m, arg, p->btype);
+				if (!skip) {
+					skip = add_ldflag(m, arg, p->btype);
+				} else {
+					/* We were asked to skip this argument in the previous step */
+					skip = 0;
+				}
 				break;
 			case MODE_CFLAGS:
 				if (!p || !m)
