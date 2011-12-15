@@ -72,7 +72,8 @@ void emit_libraries(struct library *l, int count, enum build_type bt,
 		first = 1;
 		for (i = 0; i < count; i++) {
 			if ((l[i].ltype != LIBRARY_FLAG) &&
-			    (l[i].ltype != LIBRARY_STATIC)) {
+			    (l[i].ltype != LIBRARY_STATIC) &&
+                            (l[i].ltype != LIBRARY_WHOLE_STATIC)) {
 				if (first) {
 					first = 0;
 					printf("LOCAL_SHARED_LIBRARIES:=\\\n");
@@ -89,6 +90,19 @@ void emit_libraries(struct library *l, int count, enum build_type bt,
 				if (first) {
 					first = 0;
 					printf("LOCAL_STATIC_LIBRARIES:=\\\n");
+				} else printf(" \\\n");
+				printf("\tlib%s", l[i].name);
+			}
+		}
+		if (!first)
+			printf("\n\n");
+
+		first = 1;
+		for (i = 0; i < count; i++) {
+			if ((l[i].ltype == LIBRARY_WHOLE_STATIC)) {
+				if (first) {
+					first = 0;
+					printf("LOCAL_WHOLE_STATIC_LIBRARIES:=\\\n");
 				} else printf(" \\\n");
 				printf("\tlib%s", l[i].name);
 			}
