@@ -142,22 +142,17 @@ static char *path_subst(struct project *p, char *in)
 
 	if (p->abs_top && p->rel_top &&
 	    (strlen(ptr) > 2) && (ptr[0] == '-') && (ptr[1] == 'I')) {
-		char *newstr = malloc(PATH_MAX);
-		char *pstr = newstr;
-		*pstr++ = '-';
-		*pstr++ = 'I';
-		if (realpath(in + 2, pstr)) {
-		    char *atop = getenv("ANDROID_BUILD_TOP");
-		    if (atop && strstr(pstr, atop) == pstr) {
-			int len = strlen(atop);
-			if (pstr[len] == '/')
-			    len++;
-			memmove(pstr, pstr + len, strlen(pstr + len) + 1);
-		    }
-		    free(ptr);
-		    return newstr;
+		if (strncmp(ptr + 2, p->rel_top, strlen(p->rel_top)) == 0) {
+			int newlen = strlen(ptr) - strlen(p->rel_top)
+			           + strlen(p->abs_top) + 1;
+			char *newstr = malloc(newlen * sizeof(char));
+			newstr[0] = '-';
+			newstr[1] = 'I';
+			strcpy(newstr + 2, p->abs_top);
+			strcat(newstr, ptr + 2 + strlen(p->rel_top));
+			free(ptr);
+			return newstr;
 		}
-		free(newstr);
 	}
 	return ptr;
 }
