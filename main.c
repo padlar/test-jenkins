@@ -4,6 +4,7 @@
 #include "options.h"
 #include "common.h"
 
+
 static void cleanup_flag(struct flag *c)
 {
 	free(c->flag);
